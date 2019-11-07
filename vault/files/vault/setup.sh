@@ -28,6 +28,3 @@ sudo sed "s?USER_HOME?${BIN_PATH}?" /etc/systemd/system/vault.service -i
 
 sudo systemctl start vault
 sudo systemctl enable vault
-
-echo "export VAULT_ADDR=http://localhost:8200" >> $HOME/.bashrc
-echo "export VAULT_TOKEN=root" >> $HOME/.bashrc
