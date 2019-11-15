@@ -1,0 +1,70 @@
+storage:
+  files:
+    - path: /home/consul/setup.sh
+      filesystem: root
+      mode: 0777
+      contents:
+        inline: |
+          #!/bin/sh
+
+          CONSUL_VERSION="1.2.3"
+          sudo useradd -p "*" -U -m consul -G sudo
+          sudo /bin/mkdir -p /var/run/consul
+          sudo /bin/chown -R consul:consul /var/run/consul
+          sudo /bin/mkdir -p /var/consul
+          sudo /bin/chown -R consul:consul /var/consul
+          /bin/mkdir -p /home/consul/bin
+          sudo /bin/chown -R consul:consul /home/consul/bin
+          /bin/mkdir -p /home/consul/consul.d
+          sudo /bin/chown -R consul:consul /home/consul/consul.d
+          /bin/wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -P /home/consul/bin
+          /bin/unzip -u /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip -d /home/consul/bin
+          /bin/rm -rf /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip
+          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[0].ipv4.ipAddress[0].privateIpAddress --raw-output)
+          HOSTNAME=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | jq .compute.name --raw-output)
+          CONSUL0="${HOSTNAME::-1}0"
+          CONSUL1="${HOSTNAME::-1}1"
+          CONSUL2="${HOSTNAME::-1}2"
+
+          bash -c "cat >/home/consul/consul.d/consul.json" << EOF
+          {
+            "server": true,
+            "node_name": "${HOSTNAME}",
+            "datacenter": "dc1",
+            "data_dir": "/var/consul/data",
+            "bind_addr": "${SERVICE_IP}",
+            "client_addr": "${SERVICE_IP}",
+            "advertise_addr": "${SERVICE_IP}",
+            "bootstrap_expect": 3,
+            "retry_join": ["${CONSUL0}","${CONSUL1}","${CONSUL2}"],
+            "ui": true,
+            "log_level": "DEBUG",
+            "enable_syslog": true,
+            "acl_enforce_version_8": false
+          }
+          EOF
+
+systemd:
+  units:
+    - name: consul-server.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Consul server agent
+        Requires=network-online.target
+        After=network-online.target
+
+        [Service]
+        ExecStartPre=/home/consul/setup.sh
+        PIDFile=/var/run/consul/consul.pid
+        PermissionsStartOnly=true
+        ExecStart=/home/consul/bin/consul agent -config-file=/home/consul/consul.d/consul.json -pid-file=/var/run/consul/consul.pid
+        ExecReload=/bin/kill -HUP $MAINPID
+        KillMode=process
+        KillSignal=SIGTERM
+        Restart=on-failure
+        RestartSec=42s
+        Type=idle
+
+        [Install]
+        WantedBy=multi-user.target

@@ -1,0 +1,34 @@
+{
+  "ignition": {
+    "config": {},
+    "security": {
+      "tls": {}
+    },
+    "timeouts": {},
+    "version": "2.2.0"
+  },
+  "networkd": {},
+  "passwd": {},
+  "storage": {
+    "files": [
+      {
+        "filesystem": "root",
+        "path": "/home/envoy/envoy.d/envoy.yaml",
+        "contents": {
+          "source": "data:,admin%3A%0A%20%20access_log_path%3A%20%2Ftmp%2Fadmin_access.log%0A%20%20address%3A%0A%20%20%20%20socket_address%3A%0A%20%20%20%20%20%20protocol%3A%20TCP%0A%20%20%20%20%20%20address%3A%20127.0.0.1%0A%20%20%20%20%20%20port_value%3A%209901%0Astatic_resources%3A%0A%20%20listeners%3A%0A%20%20%20%20-%20name%3A%20listener_0%0A%20%20%20%20%20%20address%3A%0A%20%20%20%20%20%20%20%20socket_address%3A%0A%20%20%20%20%20%20%20%20%20%20protocol%3A%20TCP%0A%20%20%20%20%20%20%20%20%20%20address%3A%200.0.0.0%0A%20%20%20%20%20%20%20%20%20%20port_value%3A%208200%0A%20%20%20%20%20%20filter_chains%3A%0A%20%20%20%20%20%20%20%20-%20filters%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20-%20name%3A%20envoy.http_connection_manager%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20typed_config%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%22%40type%22%3A%20type.googleapis.com%2Fenvoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20stat_prefix%3A%20ingress_http%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20route_config%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%3A%20local_route%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20virtual_hosts%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-%20name%3A%20local_service%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20domains%3A%20%5B%22*%22%5D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20routes%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-%20match%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20prefix%3A%20%22%2F%22%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20route%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20cluster%3A%20service_vault%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20http_filters%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20-%20name%3A%20envoy.router%0A%20%20clusters%3A%0A%20%20%20%20-%20name%3A%20service_vault%0A%20%20%20%20%20%20connect_timeout%3A%200.25s%0A%20%20%20%20%20%20type%3A%20STRICT_DNS%0A%20%20%20%20%20%20%23%20Comment%20out%20the%20following%20line%20to%20test%20on%20v6%20networks%0A%20%20%20%20%20%20dns_lookup_family%3A%20V4_ONLY%0A%20%20%20%20%20%20lb_policy%3A%20ROUND_ROBIN%0A%20%20%20%20%20%20load_assignment%3A%0A%20%20%20%20%20%20%20%20cluster_name%3A%20service_vault%0A%20%20%20%20%20%20%20%20endpoints%3A%0A%20%20%20%20%20%20%20%20%20%20-%20lb_endpoints%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20-%20endpoint%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20address%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20socket_address%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20address%3A%20vault-azure-workshop-vm-vault-workshop-0%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20port_value%3A%208200%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20-%20endpoint%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20address%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20socket_address%3A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20address%3A%20vault-azure-workshop-vm-vault-workshop-1%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20port_value%3A%208200%0A",
+          "verification": {}
+        },
+        "mode": 511
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "contents": "[Unit]\nDescription=Envoy\nAfter=docker.service\nRequires=docker.service\n\n[Service]\nTimeoutStartSec=0\nExecStartPre=-/usr/bin/docker pull envoyproxy/envoy-alpine:v1.12.0\nExecStart=/usr/local/bin/systemd-docker --cgroups name=systemd run --rm --name %n -d -p 9901:9901 -p 8200:8200 -v /home/abelgana/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy-alpine:v1.12.0\nRestart=always\nRestartSec=10s\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "envoy.service"
+      }
+    ]
+  }
+}

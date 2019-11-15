@@ -104,7 +104,7 @@ resource "azurerm_network_security_group" "nsg_vault_consul" {
   security_rule {
     access = "Allow"
     destination_address_prefix = "*"
-    destination_port_range = "8500"
+    destination_port_range = "*"
     direction = "Inbound"
     name = "Consul"
     priority = 100
@@ -270,76 +270,6 @@ resource "azurerm_availability_set" "av_set_consul" {
   managed = true
 }
 
-
-data "ignition_systemd_unit" "consul_server_service" {
-  name = "consul-server.service"
-  content = "[Unit]\nDescription=Consul server agent\nRequires=network-online.target\nAfter=network-online.target\n\n[Service]\nUser=consul\nGroup=consul\nPIDFile=/var/run/consul/consul.pid\nPermissionsStartOnly=true\nExecStartPre=/home/consul/setup.sh\nExecStart=/home/consul/bin/consul agent -config-file=/home/consul/consul.d/consul.json -pid-file=/var/run/consul/consul.pid\nExecReload=/bin/kill -HUP $MAINPID\nKillMode=process\nKillSignal=SIGTERM\nRestart=on-failure\nRestartSec=42s\n\n[Install]\nWantedBy=multi-user.target"
-  enabled = true
-}
-
-data "ignition_file" "consul_server_config" {
-  filesystem = "ROOT"
-  path = "/home/consol/setup.sh"
-  content {
-    content = file("../files/consul/setup.sh")
-  }
-  mode = 777
-}
-
-data "ignition_group" "consul-group" {
-  name = "consul"
-}
-
-data "ignition_user" "consul-user" {
-  name = "consul"
-  home_dir = "/home/consul/"
-  groups = ["consul"]
-  system = true
-}
-
-data "ignition_config" "consul_server_config" {
-  groups = [
-    data.ignition_group.consul-group.id,
-  ]
-  users = [
-    data.ignition_user.consul-user.id,
-  ]
-  files = [
-    data.ignition_file.consul_server_config.id,
-  ]
-  systemd = [
-    data.ignition_systemd_unit.consul_server_service.id,
-  ]
-}
-
-data "ignition_systemd_unit" "consul_client_service" {
-  name = "consul-client.service"
-  content = "[Service]\nType=oneshot\nExecStart=/usr/bin/echo Hello World\n\n[Install]\nWantedBy=multi-user.target"
-}
-
-data "ignition_systemd_unit" "vault_service" {
-  name = "vault.service"
-  content = "[Unit]\nDescription=Hashicorp Vault\nAfter=network.target\n[Service]\nType=simple\nUser=root\nWorkingDirectory=/root\nExecStart=/home/vault/vault server -dev -dev-root-token-id=root -dev-listen-address=0.0.0.0:8200\nRestart=on-failure\n[Install]\nWantedBy=multi-user.target"
-}
-
-data "ignition_config" "vault_config" {
-  systemd = [
-    data.ignition_systemd_unit.vault_service.id,
-    data.ignition_systemd_unit.consul_client_service.id,
-  ]
-}
-
-data "ignition_systemd_unit" "envoy_proxy_service" {
-  name = "envoy-proxy.service"
-  content = "[Service]\nType=oneshot\nExecStart=/usr/bin/echo Hello World\n\n[Install]\nWantedBy=multi-user.target"
-}
-
-data "ignition_config" "envoy_proxy_config" {
-  systemd = [
-    data.ignition_systemd_unit.envoy_proxy_service.id,
-  ]
-}
-
 resource "azurerm_virtual_machine" "ssh_vm" {
   location = azurerm_resource_group.rg_vault_cluster.location
   name = "${var.prefix}-ssh-vm"
@@ -401,7 +331,7 @@ resource "azurerm_virtual_machine" "lb_vm" {
   os_profile {
     admin_username = var.admin_username
     computer_name = "${var.prefix}-lb"
-    custom_data = data.ignition_config.envoy_proxy_config.rendered
+    custom_data = file("../files/envoy/json/ignition.json")
   }
 
   os_profile_linux_config {
@@ -444,7 +374,7 @@ resource "azurerm_virtual_machine" "vm_vault_workshop" {
   os_profile {
     admin_username = var.admin_username
     computer_name = "${var.prefix}-os-profile-vault-${count.index}"
-    custom_data = data.ignition_config.vault_config.rendered
+    custom_data = file("../files/vault/json/ignition.json")
   }
 
   os_profile_linux_config {
@@ -465,7 +395,7 @@ resource "azurerm_virtual_machine" "vm_consul" {
     azurerm_network_interface.nic_consul_vault[count.index].id,
     azurerm_network_interface.nic_consul_ssh[count.index].id
   ]
-  primary_network_interface_id = azurerm_network_interface.nic_consul_ssh[count.index].id
+  primary_network_interface_id = azurerm_network_interface.nic_consul_vault[count.index].id
   resource_group_name = azurerm_resource_group.rg_vault_cluster.name
   vm_size = var.vm_size
   availability_set_id = azurerm_availability_set.av_set_consul.id
@@ -486,7 +416,7 @@ resource "azurerm_virtual_machine" "vm_consul" {
   os_profile {
     admin_username = var.admin_username
     computer_name = "${var.prefix}-os-profile-consul-${count.index}"
-    custom_data = data.ignition_config.consul_server_config.rendered
+    custom_data = file("../files/consul/json/server/ignition.json")
   }
 
   os_profile_linux_config {
@@ -499,13 +429,4 @@ resource "azurerm_virtual_machine" "vm_consul" {
 }
 
 # resource "azurerm_firewall" "firewall-to-add" {
-#   name                = "testfirewall"
-#   location            = azurerm_resource_group.rg_vault_workshop.location
-#   resource_group_name = azurerm_resource_group.rg_vault_workshop.name
-#
-#   ip_configuration {
-#     name                 = "configuration"
-#     subnet_id            = azurerm_subnet.snet_vault_workshop.id
-#     public_ip_address_id = azurerm_public_ip.public_ip_vault_workshop.id
-#   }
 # }
