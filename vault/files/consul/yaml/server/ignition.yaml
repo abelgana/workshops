@@ -20,7 +20,7 @@ storage:
           /bin/wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -P /home/consul/bin
           /bin/unzip -u /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip -d /home/consul/bin
           /bin/rm -rf /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip
-          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[0].ipv4.ipAddress[0].privateIpAddress --raw-output)
+          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[].ipv4.ipAddress[].privateIpAddress --raw-output | grep 10.0.30)
           HOSTNAME=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | jq .compute.name --raw-output)
           CONSUL0="${HOSTNAME::-1}0"
           CONSUL1="${HOSTNAME::-1}1"

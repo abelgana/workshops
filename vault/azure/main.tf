@@ -353,7 +353,7 @@ resource "azurerm_virtual_machine" "vm_vault_workshop" {
     azurerm_network_interface.nic_ssh_vault[count.index].id,
     azurerm_network_interface.nic_vault_consul[count.index].id
   ]
-  primary_network_interface_id = azurerm_network_interface.nic_ssh_vault[count.index].id
+  primary_network_interface_id = azurerm_network_interface.nic_vault[count.index].id
   resource_group_name = azurerm_resource_group.rg_vault_cluster.name
   vm_size = var.vm_size
   availability_set_id = azurerm_availability_set.av_set_vault_workshop.id
@@ -373,7 +373,7 @@ resource "azurerm_virtual_machine" "vm_vault_workshop" {
 
   os_profile {
     admin_username = var.admin_username
-    computer_name = "${var.prefix}-os-profile-vault-${count.index}"
+    computer_name = "${var.prefix}-vm-vault-${count.index}"
     custom_data = file("../files/vault/json/ignition.json")
   }
 
@@ -415,7 +415,7 @@ resource "azurerm_virtual_machine" "vm_consul" {
 
   os_profile {
     admin_username = var.admin_username
-    computer_name = "${var.prefix}-os-profile-consul-${count.index}"
+    computer_name = "${var.prefix}-vm-consul-${count.index}"
     custom_data = file("../files/consul/json/server/ignition.json")
   }
 

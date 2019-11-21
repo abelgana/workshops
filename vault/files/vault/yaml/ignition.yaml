@@ -20,11 +20,14 @@ storage:
           /bin/wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -P /home/consul/bin
           /bin/unzip -u /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip -d /home/consul/bin
           /bin/rm -rf /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip
-          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[0].ipv4.ipAddress[0].privateIpAddress --raw-output)
+          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[].ipv4.ipAddress[].privateIpAddress --raw-output | grep 10.0.30)
           HOSTNAME=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | jq .compute.name --raw-output)
-          CONSUL0="${${HOSTNAME::-1}0/vault/consul}"
-          CONSUL1="${${HOSTNAME::-1}1/vault/consul}"
-          CONSUL2="${${HOSTNAME::-1}2/vault/consul}"
+          TMP="${HOSTNAME::-1}0"
+          CONSUL0="${TMP/-vault-/-consul-}"
+          TMP="${HOSTNAME::-1}1"
+          CONSUL1="${TMP/-vault-/-consul-}"
+          TMP="${HOSTNAME::-1}2"
+          CONSUL2="${TMP/-vault-/-consul-}"
 
           bash -c "cat >/home/consul/consul.d/consul.json" << EOF
           {
@@ -33,7 +36,7 @@ storage:
             "datacenter": "dc1",
             "data_dir": "/var/consul/data",
             "bind_addr": "${SERVICE_IP}",
-            "client_addr": "127.0.0.1",
+            "client_addr": "${SERVICE_IP}",
             "advertise_addr": "${SERVICE_IP}",
             "retry_join": ["${CONSUL0}","${CONSUL1}","${CONSUL2}"],
             "ui": true,
@@ -59,17 +62,18 @@ storage:
           /bin/wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip -P /home/vault/bin
           /bin/unzip -u /home/vault/bin/vault_${VAULT_VERSION}_linux_amd64.zip -d /home/vault/bin
           /bin/rm -rf /home/vault/bin/vault_${VAULT_VERSION}_linux_amd64.zip
-          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[0].ipv4.ipAddress[0].privateIpAddress --raw-output)
+          SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[].ipv4.ipAddress[].privateIpAddress --raw-output | grep 10.0.20)
+          CONSUL_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[].ipv4.ipAddress[].privateIpAddress --raw-output | grep 10.0.30)
 
           bash -c "cat >/home/vault/vault.d/vault.hcl" << EOF
             listener "tcp" {
-              address          = "0.0.0.0:8200"
+              address          = "${SERVICE_IP}:8200"
               cluster_address  = "${SERVICE_IP}:8201"
               tls_disable      = "true"
             }
 
               storage "consul" {
-              address = "127.0.0.1:8500"
+              address = "${CONSUL_IP}:8500"
               path    = "vault/"
             }
 

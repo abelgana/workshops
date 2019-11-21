@@ -25,7 +25,7 @@
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=Envoy\nAfter=docker.service\nRequires=docker.service\n\n[Service]\nTimeoutStartSec=0\nExecStartPre=-/usr/bin/docker pull envoyproxy/envoy-alpine:v1.12.0\nExecStart=/usr/local/bin/systemd-docker --cgroups name=systemd run --rm --name %n -d -p 9901:9901 -p 8200:8200 -v /home/abelgana/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy-alpine:v1.12.0\nRestart=always\nRestartSec=10s\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=Envoy\nAfter=docker.service\nRequires=docker.service\n\n[Service]\nTimeoutStartSec=0\nExecStartPre=-/usr/bin/docker pull envoyproxy/envoy-alpine:v1.12.0\nExecStartPre=-/usr/bin/docker rm envoy -f\nExecStart=/usr/bin/docker run --rm --name envoy -d -p 9901:9901 -p 8200:8200 -v /home/envoy/envoy.d/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy-alpine:v1.12.0\nRestart=always\nRestartSec=10s\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "envoy.service"
       }

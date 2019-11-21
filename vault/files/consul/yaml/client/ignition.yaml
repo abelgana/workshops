@@ -22,9 +22,12 @@ storage:
           /bin/rm -rf /home/consul/bin/consul_${CONSUL_VERSION}_linux_amd64.zip
           SERVICE_IP=$(/usr/bin/curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | /usr/bin/jq .network.interface[0].ipv4.ipAddress[0].privateIpAddress --raw-output)
           HOSTNAME=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01" | jq .compute.name --raw-output)
-          CONSUL0="${${HOSTNAME::-1}0/vault/consul}"
-          CONSUL1="${${HOSTNAME::-1}1/vault/consul}"
-          CONSUL2="${${HOSTNAME::-1}2/vault/consul}"
+          TMP="${HOSTNAME::-1}0"
+          CONSUL0="${TMP/-vault-/-consul-}"
+          TMP="${HOSTNAME::-1}1"
+          CONSUL1="${TMP/-vault-/-consul-}"
+          TMP="${HOSTNAME::-1}2"
+          CONSUL2="${TMP/-vault-/-consul-}"
 
           bash -c "cat >/home/consul/consul.d/consul.json" << EOF
           {

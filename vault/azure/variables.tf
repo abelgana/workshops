@@ -28,12 +28,12 @@ variable "ssh_subnet_prefix" {
 
 variable "consul_subnet_prefix" {
   description = "The address prefix to use for the subnet."
-  default = "10.0.20.0/24"
+  default = "10.0.30.0/24"
 }
 
 variable "lb_vault_subnet_prefix" {
   description = "The address prefix to use for the subnet."
-  default = "10.0.30.0/24"
+  default = "10.0.20.0/24"
 }
 
 variable "storage_account_tier" {
